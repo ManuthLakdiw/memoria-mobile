@@ -1,12 +1,9 @@
-import {View, Text} from 'react-native'
 import React from 'react'
-import './../global.css'
+import {Redirect} from "expo-router";
 
 const App = () => {
     return (
-        <View>
-            <Text>App</Text>
-        </View>
+            <Redirect href={"/splash-screen"} />
     )
 }
 export default App
