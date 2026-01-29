@@ -57,15 +57,13 @@ const Calendar = () => {
     };
 
     const handleApplyPicker = () => {
-        // Direct string formatting - timezone issues නැති
-        const month = String(pickerMonth + 1).padStart(2, '0'); // 0-11 → 1-12
+        const month = String(pickerMonth + 1).padStart(2, '0');
         const newDateString = `${pickerYear}-${month}-01`;
 
         setCurrentMonth(newDateString);
         setPickerVisible(false);
     };
 
-    // Picker එකේ year වෙනස් කරන්න
     const changePickerYear = (increment: number) => {
         setPickerYear(prev => prev + increment);
     };
