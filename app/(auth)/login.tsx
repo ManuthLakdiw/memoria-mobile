@@ -1,12 +1,24 @@
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from "expo-router";
+import {useNavigation, useRouter} from "expo-router";
 import { ChevronLeft, Eye, EyeOff, Sparkles, Fingerprint } from "lucide-react-native";
+import {CommonActions} from "@react-navigation/native";
 
 const Login = () => {
     const router = useRouter();
+    const navigation = useNavigation();
     const [isPasswordVisible, setPasswordVisible] = useState(false);
+
+
+    const handleLogin = () => {
+        navigation.dispatch(
+            CommonActions.reset({
+                index: 0,
+                routes: [{ name: '(dashboard)' }],
+            })
+        );
+    };
 
     return (
         <SafeAreaView className="flex-1 bg-white">
@@ -85,8 +97,9 @@ const Login = () => {
                                 </Text>
                             </TouchableOpacity>
                         </View>
-
-                        <TouchableOpacity className="w-full bg-primary h-14 rounded-xl items-center justify-center shadow-lg shadow-primary/20 active:opacity-90">
+                        <TouchableOpacity
+                            onPress={() => router.replace("/(dashboard)/home")}
+                            className="w-full bg-primary h-14 rounded-xl items-center justify-center shadow-lg shadow-primary/20 active:opacity-90">
                             <Text className="text-white font-jakarta-bold text-base">
                                 Login
                             </Text>
