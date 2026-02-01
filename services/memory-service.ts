@@ -2,6 +2,21 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from "@/config/firebase";
 import { uploadImageToCloudinary } from "./image-service";
 
+
+const MOOD_IMAGES: Record<string, string> = {
+    'Joy': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop',
+    'Calm': 'https://images.unsplash.com/photo-1474418397713-7ede21d49118?q=80&w=2053&auto=format&fit=crop',
+    'Sad': 'https://images.unsplash.com/photo-1525120334885-38cc03a6ec77?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'Angry': 'https://images.unsplash.com/photo-1503525537183-c84679c9147f?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'Tired': 'https://images.unsplash.com/photo-1612620980838-5541dad8e254?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'Default': 'https://images.unsplash.com/photo-1528569937393-ee892b976859?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+};
+
+const getImageForMood = (mood: string) => {
+    return MOOD_IMAGES[mood] || MOOD_IMAGES['Default'];
+};
+
+
 interface MemoryData {
     title: string;
     content: string;
@@ -20,16 +35,18 @@ export const createMemory = async (userId: string, data: MemoryData) => {
             downloadUrl = await uploadImageToCloudinary(data.imageUri);
 
             if (!downloadUrl) {
-                throw new Error("Image upload failed");
+                console.warn("Image upload failed. Using mood image as fallback.");
             }
         }
+
+        const finalImageUrl = downloadUrl || getImageForMood(data.mood);
 
         const docRef = await addDoc(collection(db, "users", userId, "memories"), {
             title: data.title || "Untitled Memory",
             content: data.content,
             mood: data.mood,
             tags: data.tags,
-            imageUrl: downloadUrl,
+            imageUrl: finalImageUrl,
             type: data.entryType,
             createdAt: Timestamp.fromDate(data.entryDate),
             dateString: data.entryDate.toISOString().split('T')[0]

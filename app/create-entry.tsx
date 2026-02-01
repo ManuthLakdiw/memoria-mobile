@@ -1,5 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, Image, Alert, ActivityIndicator } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MotiSafeAreaView, MotiView } from 'moti';
 import { useRouter } from "expo-router";
 import * as ImagePicker from 'expo-image-picker';
@@ -7,7 +7,6 @@ import {
     ChevronLeft, Calendar, Smile, Meh, Frown, CloudRain, Moon,
     Plus, X, Camera, Image as ImageIcon, Mic, Type, Clock
 } from 'lucide-react-native';
-import { Calendar as RNCalendar } from 'react-native-calendars';
 import { useAuth } from "@/hooks/use-auth";
 import { createMemory } from "@/services/memory-service";
 import { useLoader } from "@/hooks/user-loader";
@@ -25,7 +24,6 @@ const CreateEntry = () => {
     const [selectedTags, setSelectedTags] = useState<string[]>(['Personal']);
 
     const [tagModalVisible, setTagModalVisible] = useState(false);
-    const [dateModalVisible, setDateModalVisible] = useState(false);
     const [attachModalVisible, setAttachModalVisible] = useState(false);
 
     const [entryDate, setEntryDate] = useState(new Date());
@@ -39,6 +37,71 @@ const CreateEntry = () => {
         { label: 'Angry', icon: <CloudRain size={28} color="#DC2626" />, bg: 'bg-red-50', activeBorder: 'border-red-400', activeBg: 'bg-red-100' },
         { label: 'Tired', icon: <Moon size={28} color="#475569" />, bg: 'bg-slate-100', activeBorder: 'border-slate-400', activeBg: 'bg-slate-200' },
     ];
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setEntryDate(new Date());
+        }, 60000);
+
+        return () => clearInterval(timer);
+    }, []);
+
+    // useEffect(() => {
+    //     const hasUnsavedChanges = title.trim() !== '' || content.trim() !== '' || selectedImage !== null;
+    //
+    //     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+    //         if (!hasUnsavedChanges || !entryType) {
+    //             return;
+    //         }
+    //
+    //
+    //         Alert.alert(
+    //             'Discard changes?',
+    //             'You have unsaved changes. Are you sure you want to discard them and leave?',
+    //             [
+    //                 { text: "Don't leave", style: 'cancel', onPress: () => {} },
+    //                 {
+    //                     text: 'Discard',
+    //                     style: 'destructive',
+    //                     onPress: () => navigation.dispatch(e.data.action),
+    //                 },
+    //             ]
+    //         );
+    //     });
+    //
+    //     return unsubscribe;
+    // }, [navigation, title, content, selectedImage, entryType]);
+
+
+    const resetForm = () => {
+        setTitle('');
+        setContent('');
+        setSelectedImage(null);
+        setSelectedTags(['Personal']);
+        setMood('Joy');
+        setEntryType(null);
+    };
+
+    const handleBackPress = () => {
+        const hasUnsavedChanges = title.trim() !== '' || content.trim() !== '' || selectedImage !== null;
+
+        if (hasUnsavedChanges) {
+            Alert.alert(
+                'Discard changes?',
+                'You have unsaved changes. Are you sure to discard them?',
+                [
+                    { text: "Cancel", style: 'cancel' },
+                    {
+                        text: 'Discard',
+                        style: 'destructive',
+                        onPress: () => resetForm(),
+                    },
+                ]
+            );
+        } else {
+            resetForm();
+        }
+    };
 
     const formattedDateTime = entryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + " • " + entryDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
@@ -85,7 +148,7 @@ const CreateEntry = () => {
             } catch (error) {
                 console.error('Image picker error:', error);
                 Alert.alert('Error', 'Failed to pick image.');
-            }finally{
+            } finally {
                 hideLoader()
             }
         }, 1500);
@@ -104,7 +167,7 @@ const CreateEntry = () => {
                 mood,
                 tags: selectedTags,
                 entryType: entryType!,
-                entryDate,
+                entryDate: new Date(),
                 imageUri: selectedImage
             });
 
@@ -143,7 +206,9 @@ const CreateEntry = () => {
     return (
         <MotiSafeAreaView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} className="flex-1 bg-[#F6F7F8]">
             <View className="px-4 py-3 bg-[#F6F7F8]/90 flex-row items-center justify-between border-b border-gray-200/50 z-10">
-                <TouchableOpacity onPress={() => setEntryType(null)} className="w-10 h-10 items-center justify-center rounded-full active:bg-gray-200"><ChevronLeft color="#0E141B" size={24} /></TouchableOpacity>
+                <TouchableOpacity onPress={handleBackPress} className="w-10 h-10 items-center justify-center rounded-full active:bg-gray-200">
+                    <ChevronLeft color="#0E141B" size={24} />
+                </TouchableOpacity>
                 <Text className="text-[#0E141B] text-lg font-jakarta-bold">{entryType === 'text' ? 'New Text Entry' : 'New Audio Entry'}</Text>
                 <TouchableOpacity onPress={handleSave} disabled={isLoading}>
                     {isLoading ? <ActivityIndicator size="small" color="#197FE6" /> : <Text className="text-primary font-jakarta-bold text-base">Save</Text>}
@@ -152,9 +217,9 @@ const CreateEntry = () => {
 
             <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 120 }}>
                 <View className="items-center py-6">
-                    <TouchableOpacity onPress={() => setDateModalVisible(true)} className="flex-row items-center bg-white px-5 py-3 rounded-full border border-gray-100 shadow-sm active:bg-gray-50">
+                    <View className="flex-row items-center bg-white px-5 py-3 rounded-full border border-gray-100 shadow-sm">
                         <Calendar color="#197FE6" size={16} /><Text className="text-sm font-jakarta-bold text-[#4E7397] ml-2 mr-2">{formattedDateTime}</Text><Clock color="#197FE6" size={14} opacity={0.5} />
-                    </TouchableOpacity>
+                    </View>
                 </View>
 
                 <View className="px-6 mb-8">
@@ -216,10 +281,6 @@ const CreateEntry = () => {
 
             <Modal visible={tagModalVisible} transparent={true} animationType="slide" onRequestClose={() => setTagModalVisible(false)}>
                 <View className="flex-1 justify-end bg-black/40"><TouchableOpacity className="absolute inset-0" onPress={() => setTagModalVisible(false)} /><MotiView from={{translateY: 300}} animate={{translateY: 0}} className="bg-white rounded-t-[32px] p-6 pb-10 shadow-2xl h-[50%]"><View className="w-12 h-1.5 bg-gray-200 rounded-full self-center mb-6 opacity-50" /><Text className="text-xl font-jakarta-bold text-[#0E141B] mb-4">Select Tags</Text><ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{availableTags.map((tag) => {const isSelected = selectedTags.includes(tag);return (<TouchableOpacity key={tag} onPress={() => toggleTag(tag)} className={`px-4 py-3 rounded-xl border ${isSelected ? 'bg-primary border-primary' : 'bg-gray-50 border-gray-200'}`}><Text className={`text-sm font-jakarta-bold ${isSelected ? 'text-white' : 'text-gray-600'}`}>{tag}</Text></TouchableOpacity>)})}</ScrollView><TouchableOpacity onPress={() => setTagModalVisible(false)} className="mt-4 bg-primary py-4 rounded-2xl items-center"><Text className="text-white font-jakarta-bold">Done</Text></TouchableOpacity></MotiView></View>
-            </Modal>
-
-            <Modal visible={dateModalVisible} transparent={true} animationType="fade" onRequestClose={() => setDateModalVisible(false)}>
-                <View className="flex-1 bg-black/30 justify-center items-center px-6"><View className="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl"><RNCalendar current={entryDate.toISOString().split('T')[0]} onDayPress={(day: any) => {const newDate = new Date(entryDate);newDate.setFullYear(day.year);newDate.setMonth(day.month - 1);newDate.setDate(day.day);setEntryDate(newDate);}} theme={{ textDayFontFamily: 'PlusJakartaSans-Medium', todayTextColor: '#197FE6', selectedDayBackgroundColor: '#197FE6', arrowColor: '#197FE6' }} markedDates={{ [entryDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#197FE6' } }}/><TouchableOpacity onPress={() => setDateModalVisible(false)} className="mt-4 self-end"><Text className="text-primary font-jakarta-bold text-base">Done</Text></TouchableOpacity></View></View>
             </Modal>
         </MotiSafeAreaView>
     );
