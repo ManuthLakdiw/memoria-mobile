@@ -11,6 +11,7 @@ import {
     PlusJakartaSans_800ExtraBold,
 } from "@expo-google-fonts/plus-jakarta-sans";
 import {SplashScreen, Stack} from "expo-router";
+import {LoaderProvider} from "@/contexts/loader-context";
 
 SplashScreen.preventAutoHideAsync();
 const Layout = () => {
@@ -38,7 +39,9 @@ const Layout = () => {
     }
 
     return (
-        <Stack screenOptions={{ headerShown: false }}></Stack>
+        <LoaderProvider>
+            <Stack screenOptions={{ headerShown: false }}></Stack>
+        </LoaderProvider>
     );
 }
 export default Layout
