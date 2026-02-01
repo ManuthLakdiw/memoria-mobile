@@ -12,6 +12,7 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import {SplashScreen, Stack} from "expo-router";
 import {LoaderProvider} from "@/contexts/loader-context";
+import {AuthProvider} from "@/contexts/auth-context";
 
 SplashScreen.preventAutoHideAsync();
 const Layout = () => {
@@ -40,7 +41,9 @@ const Layout = () => {
 
     return (
         <LoaderProvider>
-            <Stack screenOptions={{ headerShown: false }}></Stack>
+            <AuthProvider>
+                <Stack screenOptions={{ headerShown: false }}></Stack>
+            </AuthProvider>
         </LoaderProvider>
     );
 }
