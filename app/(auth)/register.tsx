@@ -1,13 +1,73 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
+    Image,
+    Alert
+} from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
-import { ChevronLeft, Eye, EyeOff } from "lucide-react-native"; // Icons
+import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
+import {useLoader} from "@/hooks/user-loader";
+import {logout, registerUser} from "@/services/auth-service";
+
+
+
 
 const Register = () => {
     const router = useRouter();
     const [isPasswordVisible, setPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+    const {showLoader, hideLoader, isLoading} = useLoader()
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+
+    const handleRegister = async () => {
+        if (isLoading) return
+
+        if (!name || !email || !password || !confirmPassword) {
+            Alert.alert("Error", "Please fill in all fields");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Alert.alert("Error", "Passwords do not match");
+            return;
+        }
+
+        if (!passwordRegex.test(password)) {
+            Alert.alert(
+                "Weak Password",
+                "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
+            );
+            return;
+        }
+
+        try {
+            showLoader()
+            await registerUser(name, email, password);
+            await logout();
+            Alert.alert("Success", "Account created successfully!", [
+                { text: "OK", onPress: () => router.replace("/login") }
+            ]);
+        } catch (error: any) {
+            let errorMessage = "Registration failed";
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = "That email address is already in use!";
+            }
+            Alert.alert("Error", errorMessage);
+        }finally {
+            hideLoader()
+        }
+    }
 
     return (
         <SafeAreaView className="flex-1 bg-white">
@@ -44,6 +104,8 @@ const Register = () => {
                         <View className="gap-2">
                             <Text className="text-secondary font-jakarta-medium text-sm ml-1">Full Name</Text>
                             <TextInput
+                                value={name}
+                                onChangeText={(text) => setName(text)}
                                 placeholder="John Doe"
                                 placeholderTextColor="#9CA3AF"
                                 className="w-full h-14 bg-white border border-[#D0DBE7] rounded-xl px-4 text-secondary font-jakarta text-base focus:border-primary focus:border-2"
@@ -53,6 +115,8 @@ const Register = () => {
                         <View className="gap-2">
                             <Text className="text-secondary font-jakarta-medium text-sm ml-1">Email</Text>
                             <TextInput
+                                value={email}
+                                onChangeText={(text) => setEmail(text)}
                                 placeholder="example@mail.com"
                                 placeholderTextColor="#9CA3AF"
                                 keyboardType="email-address"
@@ -60,11 +124,12 @@ const Register = () => {
                             />
                         </View>
 
-                        {/* Password */}
                         <View className="gap-2">
                             <Text className="text-secondary font-jakarta-medium text-sm ml-1">Password</Text>
                             <View className="relative w-full">
                                 <TextInput
+                                    value={password}
+                                    onChangeText={(text) => setPassword(text)}
                                     placeholder="••••••••"
                                     placeholderTextColor="#9CA3AF"
                                     secureTextEntry={!isPasswordVisible}
@@ -87,6 +152,8 @@ const Register = () => {
                             <Text className="text-secondary font-jakarta-medium text-sm ml-1">Confirm Password</Text>
                             <View className="relative w-full">
                                 <TextInput
+                                    value={confirmPassword}
+                                    onChangeText={(text) => setConfirmPassword(text)}
                                     placeholder="••••••••"
                                     placeholderTextColor="#9CA3AF"
                                     secureTextEntry={!isConfirmPasswordVisible}
@@ -105,7 +172,10 @@ const Register = () => {
                             </View>
                         </View>
 
-                        <TouchableOpacity className="w-full bg-primary h-14 rounded-xl items-center justify-center shadow-sm shadow-primary/20 mt-4 active:opacity-90">
+                        <TouchableOpacity
+                            onPress={handleRegister}
+                            disabled={isLoading}
+                            className="w-full bg-primary h-14 rounded-xl items-center justify-center shadow-sm shadow-primary/20 mt-4 active:opacity-90">
                             <Text className="text-white font-jakarta-bold text-base tracking-wide">
                                 Register
                             </Text>

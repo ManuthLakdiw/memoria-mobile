@@ -1,23 +1,44 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert} from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {useNavigation, useRouter} from "expo-router";
 import { ChevronLeft, Eye, EyeOff, Sparkles, Fingerprint } from "lucide-react-native";
 import {CommonActions} from "@react-navigation/native";
+import {loginUser} from "@/services/auth-service";
+import {useLoader} from "@/hooks/user-loader";
 
 const Login = () => {
     const router = useRouter();
     const navigation = useNavigation();
     const [isPasswordVisible, setPasswordVisible] = useState(false);
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const { showLoader, hideLoader, isLoading } = useLoader();
 
 
-    const handleLogin = () => {
-        navigation.dispatch(
-            CommonActions.reset({
-                index: 0,
-                routes: [{ name: '(dashboard)' }],
-            })
-        );
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert("Error", "Please enter both email and password.");
+            return;
+        }
+
+        try {
+            showLoader();
+            await loginUser(email, password);
+            router.replace("/(dashboard)/home");
+
+        } catch (error: any) {
+            let msg = "Login failed. Please try again.";
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                msg = "Invalid email or password.";
+            } else if (error.code === 'auth/too-many-requests') {
+                msg = "Too many attempts. Please try again later.";
+            }
+
+            Alert.alert("Login Error", msg);
+        } finally {
+            hideLoader();
+        }
     };
 
     return (
@@ -61,6 +82,8 @@ const Login = () => {
                         <View className="flex-col gap-2">
                             <Text className="text-[#0E141B] font-jakarta-medium text-sm ml-1">Email</Text>
                             <TextInput
+                                value={email}
+                                onChangeText={(text) => setEmail(text)}
                                 placeholder="example@email.com"
                                 placeholderTextColor="#9CA3AF"
                                 keyboardType="email-address"
@@ -72,6 +95,8 @@ const Login = () => {
                             <Text className="text-[#0E141B] font-jakarta-medium text-sm ml-1">Password</Text>
                             <View className="relative w-full">
                                 <TextInput
+                                    value={password}
+                                    onChangeText={(text) => setPassword(text)}
                                     placeholder="Enter your password"
                                     placeholderTextColor="#9CA3AF"
                                     secureTextEntry={!isPasswordVisible}
@@ -98,7 +123,8 @@ const Login = () => {
                             </TouchableOpacity>
                         </View>
                         <TouchableOpacity
-                            onPress={() => router.replace("/(dashboard)/home")}
+                            onPress={handleLogin}
+                            disabled={isLoading}
                             className="w-full bg-primary h-14 rounded-xl items-center justify-center shadow-lg shadow-primary/20 active:opacity-90">
                             <Text className="text-white font-jakarta-bold text-base">
                                 Login
