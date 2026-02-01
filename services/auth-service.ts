@@ -1,6 +1,7 @@
-import {createUserWithEmailAndPassword, updateProfile} from "@firebase/auth";
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile} from "@firebase/auth";
 import {doc, setDoc} from "@firebase/firestore";
 import {db, auth} from "@/config/firebase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const registerUser = async (name:string, email:string, password:string) => {
     try {
@@ -21,11 +22,32 @@ export const registerUser = async (name:string, email:string, password:string) =
             createdAt: new Date().toISOString()
         });
 
-        console.log("User registered successfully!");
-
         return userCred.user
     }catch (error: any) {
-        console.error("Registration Error: ", error.message);
         throw error;
     }
+}
+
+export const loginUser = async (email: string, password: string) => {
+    try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        return userCred.user;
+    } catch (error: any) {
+        throw error;
+    }
+}
+
+
+
+
+export const logout = async () => {
+    try {
+        await signOut(auth)
+        await AsyncStorage.clear()
+        return
+    }catch (error: any) {
+        throw error;
+    }
+
+
 }
