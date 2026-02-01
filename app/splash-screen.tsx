@@ -5,14 +5,6 @@ import { MotiView } from 'moti';
 import { useRouter } from "expo-router";
 
 const SplashScreen = () => {
-    const router = useRouter();
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            router.replace("/welcome-screen")
-        }, 2500);
-
-        return () => clearTimeout(timer);
-    }, []);
 
     return (
         <MotiView
