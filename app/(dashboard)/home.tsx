@@ -293,7 +293,7 @@ const Home = () => {
             </ScrollView>
 
             <TouchableOpacity
-                onPress={() => router.push('/create-entry')}
+                onPress={() => router.push('/memory/create-entry')}
                 className="absolute bottom-12 right-6 w-14 h-14 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/40 active:scale-95"
             >
                 <Plus color="white" size={32} />
