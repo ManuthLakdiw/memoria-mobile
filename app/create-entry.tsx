@@ -21,7 +21,8 @@ const CreateEntry = () => {
     const [mood, setMood] = useState('Joy');
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const { showLoader, hideLoader, isLoading } = useLoader();
+    const [isLoading, setIsLoading] = useState(false);
+    const {showLoader, hideLoader, isLoading: isMainLoading} = useLoader();
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedTags, setSelectedTags] = useState<string[]>(['Personal']);
 
@@ -158,7 +159,6 @@ const CreateEntry = () => {
         setSelectedTags(['Personal']);
         setMood('Joy');
         setEntryType(null);
-        // මෙතන isSavingRef එක වෙනස් කරන්නේ නෑ (Manual Back යද්දී විතරක් පාවිච්චි වෙන නිසා)
     };
 
     const handleBackPress = () => {
@@ -215,7 +215,7 @@ const CreateEntry = () => {
 
         try {
             isSavingRef.current = true;
-            showLoader();
+            setIsLoading(true);
 
             await createMemory(user?.uid!, {
                 title,
@@ -238,7 +238,9 @@ const CreateEntry = () => {
         } catch (error) {
             isSavingRef.current = false;
             Alert.alert("Error", "Could not save your memory. Please try again.");
-        } finally { hideLoader(); }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     if (!entryType) {
@@ -398,8 +400,8 @@ const CreateEntry = () => {
                         <View className="w-12 h-1.5 bg-gray-200 rounded-full self-center mb-6 opacity-50" />
                         <Text className="text-xl font-jakarta-bold text-[#0E141B] mb-1">Add Photo</Text>
                         <View className="gap-3 mt-4">
-                            <TouchableOpacity onPress={() => pickImage('camera')} className="flex-row items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100"><Camera color="#197FE6" size={24} /><Text className="ml-4 text-base font-jakarta-bold text-[#0E141B]">Take Photo</Text></TouchableOpacity>
-                            <TouchableOpacity onPress={() => pickImage('gallery')} className="flex-row items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100"><ImageIcon color="#9333EA" size={24} /><Text className="ml-4 text-base font-jakarta-bold text-[#0E141B]">From Gallery</Text></TouchableOpacity>
+                            <TouchableOpacity disabled={isMainLoading} onPress={() => pickImage('camera')} className="flex-row items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100"><Camera color="#197FE6" size={24} /><Text className="ml-4 text-base font-jakarta-bold text-[#0E141B]">Take Photo</Text></TouchableOpacity>
+                            <TouchableOpacity disabled={isMainLoading} onPress={() => pickImage('gallery')} className="flex-row items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100"><ImageIcon color="#9333EA" size={24} /><Text className="ml-4 text-base font-jakarta-bold text-[#0E141B]">From Gallery</Text></TouchableOpacity>
                         </View>
                         <TouchableOpacity onPress={() => setAttachModalVisible(false)} className="mt-6 bg-gray-100 py-4 rounded-2xl items-center"><Text className="text-gray-600 font-jakarta-bold">Cancel</Text></TouchableOpacity>
                     </View>
