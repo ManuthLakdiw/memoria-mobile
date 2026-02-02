@@ -256,7 +256,9 @@ const Profile = () => {
                             <ChevronRight color="#D1D5DB" size={20} />
                         </TouchableOpacity>
 
-                        <TouchableOpacity className="w-full flex-row items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-xs active:bg-gray-50">
+                        <TouchableOpacity
+                            onPress={() => router.push('/help')}
+                            className="w-full flex-row items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-xs active:bg-gray-50">
                             <View className="flex-row items-center gap-3">
                                 <CircleHelp color="#9CA3AF" size={20} />
                                 <Text className="font-jakarta-medium text-[#0E141B]">Help Center</Text>
