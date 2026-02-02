@@ -1,7 +1,8 @@
-import {collection, addDoc, Timestamp, orderBy, getDocs, query} from 'firebase/firestore';
+import {collection, addDoc, Timestamp, orderBy, getDocs, query, deleteDoc} from 'firebase/firestore';
 import { db } from "@/config/firebase";
 import { uploadImageToCloudinary } from "./image-service";
 import { uploadAudioToCloudinary } from "./audio-service";
+import {doc} from "@firebase/firestore";
 
 const MOOD_IMAGES: Record<string, string> = {
     'Joy': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop',
@@ -82,6 +83,16 @@ export const getMemories = async (userId: string) => {
         return memories;
     } catch (error) {
         console.error("Error fetching memories:", error);
+        throw error;
+    }
+};
+
+export const deleteMemory = async (userId: string, memoryId: string) => {
+    try {
+        const memoryRef = doc(db, "users", userId, "memories", memoryId);
+        await deleteDoc(memoryRef);
+    } catch (error) {
+        console.error("Error deleting memory:", error);
         throw error;
     }
 };

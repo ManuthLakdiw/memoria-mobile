@@ -131,17 +131,35 @@ const Home = () => {
                                     <View className="py-4">
                                         <Text className="text-primary text-xs font-jakarta-bold uppercase tracking-wider mb-3 ml-1">This Week</Text>
                                         {thisWeekMemories.map((item, index) => (
-                                            <MemoryCard
+                                            <TouchableOpacity
                                                 key={item.id}
-                                                index={index}
-                                                type={item.type}
-                                                imageUrl={item.imageUrl}
-                                                mood={item.mood}
-                                                date={formatDate(item.createdAt)}
-                                                title={item.title}
-                                                content={item.content}
-                                                tags={item.tags}
-                                            />
+                                                activeOpacity={0.9}
+                                                onPress={() => router.push({
+                                                    pathname: '/memory/[id]',
+                                                    params: {
+                                                        id: item.id,
+                                                        title: item.title,
+                                                        content: item.content,
+                                                        imageUrl: item.imageUrl,
+                                                        audioUrl: item.audioUrl || '',
+                                                        mood: item.mood,
+                                                        date: formatDate(item.createdAt),
+                                                        tags: item.tags.join(','),
+                                                        type: item.type
+                                                    }
+                                                })}
+                                            >
+                                                <MemoryCard
+                                                    index={index}
+                                                    type={item.type}
+                                                    imageUrl={item.imageUrl}
+                                                    mood={item.mood}
+                                                    date={formatDate(item.createdAt)}
+                                                    title={item.title}
+                                                    content={item.content}
+                                                    tags={item.tags}
+                                                />
+                                            </TouchableOpacity>
                                         ))}
                                     </View>
                                 )}
@@ -151,17 +169,35 @@ const Home = () => {
 
                                     {olderMemories.length > 0 ? (
                                         olderMemories.map((item, index) => (
-                                            <MemoryCard
-                                                key={item.id}
-                                                index={index + 5}
-                                                type={item.type}
-                                                imageUrl={item.imageUrl}
-                                                mood={item.mood}
-                                                date={formatDate(item.createdAt)}
-                                                title={item.title}
-                                                content={item.content}
-                                                tags={item.tags}
-                                            />
+                                                <TouchableOpacity
+                                                    key={item.id}
+                                                    activeOpacity={0.9}
+                                                    onPress={() => router.push({
+                                                        pathname: '/memory/[id]',
+                                                        params: {
+                                                            id: item.id,
+                                                            title: item.title,
+                                                            content: item.content,
+                                                            imageUrl: item.imageUrl,
+                                                            audioUrl: item.audioUrl || '',
+                                                            mood: item.mood,
+                                                            date: formatDate(item.createdAt),
+                                                            tags: item.tags.join(','),
+                                                            type: item.type
+                                                        }
+                                                    })}
+                                                >
+                                                    <MemoryCard
+                                                        index={index + 5}
+                                                        type={item.type}
+                                                        imageUrl={item.imageUrl}
+                                                        mood={item.mood}
+                                                        date={formatDate(item.createdAt)}
+                                                        title={item.title}
+                                                        content={item.content}
+                                                        tags={item.tags}
+                                                    />
+                                                </TouchableOpacity>
                                         ))
                                     ) : (
                                         <View className="bg-white p-6 rounded-3xl items-center justify-center border border-dashed border-gray-200 gap-3">
