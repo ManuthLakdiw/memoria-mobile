@@ -1,165 +1,192 @@
-import {View, Text, TextInput, ScrollView, TouchableOpacity, Alert, BackHandler, Platform} from 'react-native';
-import React, {useEffect} from 'react';
-import {Settings, Search, Plus, BookHeart, CheckCircle2} from 'lucide-react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { Settings, Search, Plus, BookHeart, CheckCircle2, History, Coffee } from 'lucide-react-native';
 import MemoryCard from '@/components/memory-card';
-import {MotiSafeAreaView} from "moti";
-import {useIsFocused} from "@react-navigation/core";
+import { MotiSafeAreaView, MotiView } from "moti";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useAuth } from "@/hooks/use-auth";
+import { getMemories } from "@/services/memory-service";
+
+const formatDate = (timestamp: any) => {
+    if (!timestamp) return '';
+    // Firestore Timestamp එක JS Date එකක් බවට පත් කිරීම
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) +
+        " • " +
+        date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+};
 
 const Home = () => {
-    const isFocused = useIsFocused();
+    const router = useRouter();
+    const { user } = useAuth();
+
+    // State management
+    const [thisWeekMemories, setThisWeekMemories] = useState<any[]>([]);
+    const [olderMemories, setOlderMemories] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [hasAnyMemories, setHasAnyMemories] = useState(false);
+
+    const firstName = user?.displayName ? user.displayName.split(' ')[0] : "Friend";
+    const profileImage = user?.photoURL ? user.photoURL.replace("svg", "png") : null;
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!user) return;
+
+            const fetchData = async () => {
+                setIsLoading(true);
+                try {
+                    const data = await getMemories(user.uid);
+                    setHasAnyMemories(data.length > 0);
+
+                    const now = new Date();
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(now.getDate() - 7);
+
+                    const recent: any[] = [];
+                    const old: any[] = [];
+
+                    data.forEach((item) => {
+                        const itemDate = item.createdAt?.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
+                        if (itemDate >= oneWeekAgo) {
+                            recent.push(item);
+                        } else {
+                            old.push(item);
+                        }
+                    });
+
+                    setThisWeekMemories(recent);
+                    setOlderMemories(old);
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchData();
+        }, [user])
+    );
+
     return (
         <MotiSafeAreaView
-            from={{
-                opacity: 0,
-                translateY: 15,
-            }}
-            animate={{
-                opacity: isFocused ? 1 : 0,
-                translateY: isFocused ? 0 : 15
-            }}
-            transition={{
-                type: 'timing',
-                duration: 300,
-            }}
+            from={{ opacity: 0, translateY: 15 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 300 }}
             className="flex-1 bg-[#F6F7F8]">
+
             <View className="px-4 py-3 bg-[#F6F7F8]/80 flex-row items-center justify-between border-b border-gray-200/50">
-                <View className="w-12 h-12 bg-primary/10 rounded-full items-center justify-center">
-                    <BookHeart color="#197FE6" size={24} />
+                <View className="w-12 h-12 bg-primary/10 rounded-full items-center justify-center overflow-hidden">
+                    {profileImage ? (
+                        <Image source={{ uri: profileImage }} className="w-full h-full" resizeMode="cover" />
+                    ) : (
+                        <BookHeart color="#197FE6" size={24} />
+                    )}
                 </View>
                 <Text className="text-[#0E141B] text-xl font-jakarta-bold">Memoria</Text>
-                <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full active:bg-gray-200">
+                <TouchableOpacity onPress={() => router.push('/settings')} className="w-10 h-10 items-center justify-center rounded-full active:bg-gray-200">
                     <Settings color="#0E141B" size={24} />
                 </TouchableOpacity>
             </View>
 
-            <ScrollView
-                className="flex-1"
-                contentContainerStyle={{
-                    paddingHorizontal: 16,
-                    paddingBottom: 100
-                }}
-                showsVerticalScrollIndicator={false}
-            >
-                <View className="mt-4 mb-2 bg-white rounded-xl flex-row items-center px-4 py-3 border border-gray-100 shadow-sm">
+            <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+
+                <View className="mt-6 mb-4 flex-row items-center">
+                    <MotiView
+                        from={{ rotate: '-15deg', scale: 0.9 }}
+                        animate={{ rotate: '15deg', scale: 1.1 }}
+                        transition={{ type: 'timing', duration: 1500, loop: true, repeatReverse: true }}
+                        className="mr-4"
+                    >
+                        <Text className="text-4xl">👋</Text>
+                    </MotiView>
+
+                    <View>
+                        <Text className="text-2xl font-jakarta-bold text-[#0E141B]">{`Welcome back, ${firstName}!`}</Text>
+                        <Text className="text-sm text-gray-500 font-jakarta-medium mt-0.5">How are you feeling today?</Text>
+                    </View>
+                </View>
+
+                <View className="mt-2 mb-2 bg-white rounded-xl flex-row items-center px-4 py-3 border border-gray-100 shadow-sm">
                     <Search color="#9CA3AF" size={20} />
-                    <TextInput
-                        placeholder="Search memories..."
-                        placeholderTextColor="#9CA3AF"
-                        className="flex-1 ml-2 text-gray-700 font-jakarta text-sm"
-                    />
+                    <TextInput placeholder="Search memories..." placeholderTextColor="#9CA3AF" className="flex-1 ml-2 text-gray-700 font-jakarta text-sm" />
                 </View>
 
-                <View className="py-4">
-                    <Text className="text-primary text-xs font-jakarta-bold uppercase tracking-wider mb-3 ml-1">
-                        This Week
-                    </Text>
+                {isLoading ? (
+                    <View className="py-20 items-center">
+                        <ActivityIndicator size="large" color="#197FE6" />
+                    </View>
+                ) : (
+                    <>
+                        {!hasAnyMemories ? (
+                            <View className="items-center justify-center py-20 opacity-50 gap-4">
+                                <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center">
+                                    <Coffee color="#9CA3AF" size={40} />
+                                </View>
+                                <Text className="text-gray-400 font-jakarta-medium text-center">No memories yet.{'\n'}Tap + to create your first one!</Text>
+                            </View>
+                        ) : (
+                            <>
+                                {thisWeekMemories.length > 0 && (
+                                    <View className="py-4">
+                                        <Text className="text-primary text-xs font-jakarta-bold uppercase tracking-wider mb-3 ml-1">This Week</Text>
+                                        {thisWeekMemories.map((item, index) => (
+                                            <MemoryCard
+                                                key={item.id}
+                                                index={index}
+                                                type={item.type}
+                                                imageUrl={item.imageUrl}
+                                                mood={item.mood}
+                                                date={formatDate(item.createdAt)}
+                                                title={item.title}
+                                                content={item.content}
+                                                tags={item.tags}
+                                            />
+                                        ))}
+                                    </View>
+                                )}
 
-                    <MemoryCard
-                        index={0}
-                        type="image"
-                        imageUri="https://images.unsplash.com/photo-1507706352938-349f7e8a93cb?q=80&w=3154&auto=format&fit=crop"
-                        emoji="😊"
-                        date="Monday, Oct 24 • 5:30 PM"
-                        title="A quiet walk in the park"
-                        description="The trees are starting to turn orange and the air felt so crisp today. It was the perfect time to clear my head..."
-                    />
+                                <View className="pb-4 mt-2">
+                                    <Text className="text-gray-400 text-xs font-jakarta-bold uppercase tracking-wider mb-3 ml-1">Last Week</Text>
 
-                    <MemoryCard
-                        index={1}
-                        type="audio"
-                        emoji="✨"
-                        date="Sunday, Oct 23 • 8:15 AM"
-                        title="Morning reflection"
-                        description="Woke up feeling refreshed today. Decided to start the day with a long meditation session and some journaling about my goals..."
-                    />
+                                    {olderMemories.length > 0 ? (
+                                        olderMemories.map((item, index) => (
+                                            <MemoryCard
+                                                key={item.id}
+                                                index={index + 5}
+                                                type={item.type}
+                                                imageUrl={item.imageUrl}
+                                                mood={item.mood}
+                                                date={formatDate(item.createdAt)}
+                                                title={item.title}
+                                                content={item.content}
+                                                tags={item.tags}
+                                            />
+                                        ))
+                                    ) : (
+                                        <View className="bg-white p-6 rounded-3xl items-center justify-center border border-dashed border-gray-200 gap-3">
+                                            <View className="w-12 h-12 bg-gray-50 rounded-full items-center justify-center">
+                                                <History color="#9CA3AF" size={20} />
+                                            </View>
+                                            <Text className="text-gray-400 text-xs font-jakarta-medium text-center">
+                                                No older memories to show.{'\n'}Your history is clean!
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
 
-                    <MemoryCard
-                        index={2}
-                        type="audio"
-                        emoji="✨"
-                        date="Sunday, Oct 23 • 8:15 AM"
-                        title="Morning reflection"
-                        description="Woke up feeling refreshed today. Decided to start the day with a long meditation session and some journaling about my goals..."
-                    />
-
-                    <MemoryCard
-                        type="audio"
-                        emoji="✨"
-                        date="Sunday, Oct 23 • 8:15 AM"
-                        title="Morning reflection"
-                        description="Woke up feeling refreshed today. Decided to start the day with a long meditation session and some journaling about my goals..."
-                    />
-
-                    <MemoryCard
-                        index={3}
-                        type="audio"
-                        emoji="✨"
-                        date="Sunday, Oct 23 • 8:15 AM"
-                        title="Morning reflection"
-                        description="Woke up feeling refreshed today. Decided to start the day with a long meditation session and some journaling about my goals..."
-                    />
-
-                    <MemoryCard
-                        index={4}
-                        type="audio"
-                        emoji="✨"
-                        date="Sunday, Oct 23 • 8:15 AM"
-                        title="Morning reflection"
-                        description="Woke up feeling refreshed today. Decided to start the day with a long meditation session and some journaling about my goals..."
-                    />
-
-                    <MemoryCard
-                        index={5}
-                        type="audio"
-                        emoji="✨"
-                        date="Sunday, Oct 23 • 8:15 AM"
-                        title="Morning reflection"
-                        description="Woke up feeling refreshed today. Decided to start the day with a long meditation session and some journaling about my goals..."
-                    />
-                </View>
-                <View className="mb-4">
-                    <Text className="text-gray-400 text-xs font-jakarta-bold uppercase tracking-wider mb-3 ml-1">
-                        Earlier
-                    </Text>
-
-                    <MemoryCard
-                        index={6}
-                        type="image"
-                        imageUri="https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=3087&auto=format&fit=crop"
-                        emoji="🌧️"
-                        date="Saturday, Oct 22 • 3:45 PM"
-                        title="Rainy afternoon"
-                        description="Watched the rain from the window while sipping warm tea. Very cozy and introspective. I finally finished reading my book..."
-                    />
-                    <MemoryCard
-                        index={7}
-                        type="image"
-                        imageUri="https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=3087&auto=format&fit=crop"
-                        emoji="🌧️"
-                        date="Saturday, Oct 22 • 3:45 PM"
-                        title="Rainy afternoon"
-                        description="Watched the rain from the window while sipping warm tea. Very cozy and introspective. I finally finished reading my book..."
-                    />
-                    <MemoryCard
-                        index={8}
-                        type="image"
-                        imageUri="https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=3087&auto=format&fit=crop"
-                        emoji="🌧️"
-                        date="Saturday, Oct 22 • 3:45 PM"
-                        title="Rainy afternoon"
-                        description="Watched the rain from the window while sipping warm tea. Very cozy and introspective. I finally finished reading my book..."
-                    />
-                </View>
-
-                <View className="items-center opacity-50">
-                    <CheckCircle2 color="#9CA3AF" size={24} />
-                    <Text className="text-gray-400 text-xs font-jakarta-medium mt-2">
-                        You&#39;re all caught up!
-                    </Text>
-                </View>
+                                <View className="items-center opacity-50 py-6">
+                                    <CheckCircle2 color="#9CA3AF" size={24} />
+                                    <Text className="text-gray-400 text-xs font-jakarta-medium mt-2">You&#39;re all caught up!</Text>
+                                </View>
+                            </>
+                        )}
+                    </>
+                )}
             </ScrollView>
 
             <TouchableOpacity
+                onPress={() => router.push('/create-entry')}
                 className="absolute bottom-12 right-6 w-14 h-14 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/40 active:scale-95"
             >
                 <Plus color="white" size={32} />

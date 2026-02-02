@@ -1,4 +1,4 @@
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import {collection, addDoc, Timestamp, orderBy, getDocs, query} from 'firebase/firestore';
 import { db } from "@/config/firebase";
 import { uploadImageToCloudinary } from "./image-service";
 import { uploadAudioToCloudinary } from "./audio-service";
@@ -61,6 +61,27 @@ export const createMemory = async (userId: string, data: MemoryData) => {
         return docRef.id;
 
     } catch (error) {
+        throw error;
+    }
+};
+
+
+export const getMemories = async (userId: string) => {
+    try {
+        const memoriesRef = collection(db, "users", userId, "memories");
+
+        const q = query(memoriesRef, orderBy("createdAt", "desc"));
+
+        const querySnapshot = await getDocs(q);
+
+        const memories: any[] = [];
+        querySnapshot.forEach((doc) => {
+            memories.push({ id: doc.id, ...doc.data() });
+        });
+
+        return memories;
+    } catch (error) {
+        console.error("Error fetching memories:", error);
         throw error;
     }
 };
