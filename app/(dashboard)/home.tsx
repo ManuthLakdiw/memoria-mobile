@@ -88,13 +88,18 @@ const Home = () => {
             className="flex-1 bg-[#F6F7F8]">
 
             <View className="px-4 py-3 bg-[#F6F7F8]/80 flex-row items-center justify-between border-b border-gray-200/50">
-                <View className="w-12 h-12 bg-primary/10 rounded-full items-center justify-center overflow-hidden">
-                    {profileImage ? (
-                        <Image source={{ uri: profileImage }} className="w-full h-full" resizeMode="cover" />
-                    ) : (
-                        <BookHeart color="#197FE6" size={24} />
-                    )}
-                </View>
+                <TouchableOpacity
+                onPress={() => router.push('/profile')}>
+                    <View
+                        className="w-12 h-12 bg-primary/10 rounded-full items-center justify-center overflow-hidden">
+                        {profileImage ? (
+                            <Image source={{ uri: profileImage }} className="w-full h-full" resizeMode="cover" />
+                        ) : (
+                            <BookHeart color="#197FE6" size={24} />
+                        )}
+                    </View>
+                </TouchableOpacity>
+
                 <Text className="text-[#0E141B] text-xl font-jakarta-bold">Memoria</Text>
                 <TouchableOpacity onPress={() => router.push('/settings')} className="w-10 h-10 items-center justify-center rounded-full active:bg-gray-200">
                     <Settings color="#0E141B" size={24} />
