@@ -38,6 +38,7 @@ const UpdateEntry = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [playbackProgress, setPlaybackProgress] = useState(0);
+    const [loadingType, setLoadingType] = useState<'camera' | 'gallery' | null>(null);
 
     const [tagModalVisible, setTagModalVisible] = useState(false);
     const [attachModalVisible, setAttachModalVisible] = useState(false);
@@ -149,26 +150,49 @@ const UpdateEntry = () => {
     };
 
     const pickImage = async (mode: 'camera' | 'gallery') => {
-        setAttachModalVisible(false);
-        showLoader();
-        setTimeout(async () => {
-            try {
-                let result;
-                if (mode === 'camera') {
-                    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-                    if (status !== 'granted') { Alert.alert('Permission Required', 'Camera permission is needed.'); return; }
-                    result = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [4, 3], quality: 0.5 });
-                } else {
-                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                    if (status !== 'granted') { Alert.alert('Permission Required', 'Library permission is needed.'); return; }
-                    result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [4, 3], quality: 0.5 });
+        if (loadingType) return;
+
+        setLoadingType(mode);
+        try {
+            let result;
+            if (mode === 'camera') {
+                const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                if (status !== 'granted') {
+                    Alert.alert('Permission Required', 'Camera permission is needed.');
+                    setLoadingType(null);
+                    return;
                 }
-                if (!result.canceled && result.assets && result.assets.length > 0) setSelectedImage(result.assets[0].uri);
-            } catch (error) {
-                console.error('Image picker error:', error);
-                Alert.alert('Error', 'Failed to pick image.');
-            } finally { hideLoader(); }
-        }, 1000);
+                result = await ImagePicker.launchCameraAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    allowsEditing: true,
+                    aspect: [4, 3],
+                    quality: 0.5,
+                });
+            } else {
+                const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                if (status !== 'granted') {
+                    Alert.alert('Permission Required', 'Library permission is needed.');
+                    setLoadingType(null);
+                    return;
+                }
+                result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    allowsEditing: true,
+                    aspect: [4, 3],
+                    quality: 0.5,
+                });
+            }
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                setSelectedImage(result.assets[0].uri);
+                setAttachModalVisible(false);
+            }
+        } catch (error) {
+            console.error('Image picker error:', error);
+            Alert.alert('Error', 'Failed to pick image.');
+        } finally {
+            setLoadingType(null);
+        }
     };
 
     const toggleTag = (tag: string) => {
@@ -346,11 +370,43 @@ const UpdateEntry = () => {
                     <View className="bg-white rounded-t-[32px] p-6 pb-10 shadow-2xl">
                         <View className="w-12 h-1.5 bg-gray-200 rounded-full self-center mb-6 opacity-50" />
                         <Text className="text-xl font-jakarta-bold text-[#0E141B] mb-1">Add Photo</Text>
+
                         <View className="gap-3 mt-4">
-                            <TouchableOpacity onPress={() => pickImage('camera')} className="flex-row items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100"><Camera color="#197FE6" size={24} /><Text className="ml-4 text-base font-jakarta-bold text-[#0E141B]">Take Photo</Text></TouchableOpacity>
-                            <TouchableOpacity onPress={() => pickImage('gallery')} className="flex-row items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100"><ImageIcon color="#9333EA" size={24} /><Text className="ml-4 text-base font-jakarta-bold text-[#0E141B]">From Gallery</Text></TouchableOpacity>
+                            <TouchableOpacity
+                                disabled={!!loadingType}
+                                onPress={() => pickImage('camera')}
+                                className="flex-row items-center justify-center p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100"
+                            >
+                                {loadingType === 'camera' ? (
+                                    <ActivityIndicator size="small" color="#197FE6" />
+                                ) : (
+                                    <>
+                                        <Camera color="#197FE6" size={24} />
+                                        <Text className="ml-4 text-base font-jakarta-bold text-[#0E141B]">Take Photo</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+
+                            {/* Gallery Button */}
+                            <TouchableOpacity
+                                disabled={!!loadingType} // Disable if any button is loading
+                                onPress={() => pickImage('gallery')}
+                                className="flex-row items-center justify-center p-4 bg-gray-50 rounded-2xl border border-gray-100 active:bg-gray-100"
+                            >
+                                {loadingType === 'gallery' ? (
+                                    <ActivityIndicator size="small" color="#9333EA" />
+                                ) : (
+                                    <>
+                                        <ImageIcon color="#9333EA" size={24} />
+                                        <Text className="ml-4 text-base font-jakarta-bold text-[#0E141B]">From Gallery</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
                         </View>
-                        <TouchableOpacity onPress={() => setAttachModalVisible(false)} className="mt-6 bg-gray-100 py-4 rounded-2xl items-center"><Text className="text-gray-600 font-jakarta-bold">Cancel</Text></TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => setAttachModalVisible(false)} className="mt-6 bg-gray-100 py-4 rounded-2xl items-center">
+                            <Text className="text-gray-600 font-jakarta-bold">Cancel</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
