@@ -13,7 +13,7 @@ import {
     LogOut,
     ChevronRight
 } from 'lucide-react-native';
-import { logout } from "@/services/auth-service";
+import {getUserProfile, logout} from "@/services/auth-service";
 import { useAuth } from "@/hooks/use-auth";
 import { useLoader } from "@/hooks/user-loader";
 import { useRouter } from "expo-router";
@@ -29,6 +29,8 @@ const Profile = () => {
     const [streak, setStreak] = useState(0);
     const [primaryMood, setPrimaryMood] = useState('N/A');
     const [isLoadingStats, setIsLoadingStats] = useState(true);
+    const [bio, setBio] = useState('');
+    const [status, setStatus] = useState('');
 
     const userName = user?.displayName || "Friend";
     const userEmail = user?.email || "No Email";
@@ -38,11 +40,19 @@ const Profile = () => {
         useCallback(() => {
             if (!user) return;
 
-            const fetchStats = async () => {
+            const fetchData = async () => {
                 setIsLoadingStats(true);
                 try {
                     const data = await getMemories(user.uid);
                     processStats(data);
+
+                    const userData = await getUserProfile(user.uid);
+
+                    if (userData) {
+                        setBio(userData.bio || "No bio available");
+                        setStatus(userData.status || "Active");
+                    }
+
                 } catch (error) {
                     console.error("Error fetching stats:", error);
                 } finally {
@@ -50,7 +60,7 @@ const Profile = () => {
                 }
             };
 
-            fetchStats();
+            fetchData();
         }, [user])
     );
 
