@@ -49,6 +49,7 @@ const Profile = () => {
                     const userData = await getUserProfile(user.uid);
 
                     if (userData) {
+                        console.log(userData);
                         setBio(userData.bio || "No bio available");
                         setStatus(userData.status || "Active");
                     }
@@ -167,13 +168,32 @@ const Profile = () => {
                             )}
                         </View>
 
-                        <TouchableOpacity className="absolute bottom-1 right-1 bg-primary w-8 h-8 rounded-full items-center justify-center border-4 border-white active:scale-90">
+                        <TouchableOpacity
+                            onPress={() => router.push('/edit-profile')}
+                            className="absolute bottom-1 right-1 bg-primary w-8 h-8 rounded-full items-center justify-center border-4 border-white active:scale-90">
                             <Edit2 color="white" size={14} />
                         </TouchableOpacity>
                     </View>
 
                     <Text className="text-2xl font-jakarta-bold text-[#0E141B]">{userName}</Text>
                     <Text className="text-sm font-jakarta text-gray-500 mt-1">{userEmail}</Text>
+                    {!isLoadingStats && (
+                        <View className="mt-4 items-center w-full">
+                            {status ? (
+                                <View className="bg-blue-50 px-4 py-1.5 rounded-full mb-3 border border-blue-100">
+                                    <Text className="text-xs font-jakarta-bold text-primary uppercase tracking-wider">
+                                        {status}
+                                    </Text>
+                                </View>
+                            ) : null}
+
+                            {bio ? (
+                                <Text className="text-sm font-jakarta text-gray-600 text-center leading-6 px-4">
+                                    {bio}
+                                </Text>
+                            ) : null}
+                        </View>
+                    )}
                 </View>
 
                 <View className="px-6 gap-4 mb-8">

@@ -4,6 +4,15 @@ import {db, auth} from "@/config/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {getDoc} from "firebase/firestore";
 
+
+interface UpdateProfileData {
+    name: string;
+    photoURL: string;
+    bio: string;
+    status: string;
+}
+
+
 export const registerUser = async (name:string, email:string, password:string) => {
     try {
         const userCred =  await  createUserWithEmailAndPassword(auth, email, password)
@@ -56,6 +65,31 @@ export const getUserProfile = async (uid: string) => {
     }
 };
 
+export const updateUserProfile = async (uid: string, data: UpdateProfileData) => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("No authenticated user found");
+
+        await updateProfile(user, {
+            displayName: data.name,
+            photoURL: data.photoURL,
+        });
+
+        const userDocRef = doc(db, "users", uid);
+        await setDoc(userDocRef, {
+            name: data.name,
+            photoURL: data.photoURL,
+            bio: data.bio,
+            status: data.status,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        return true;
+    } catch (error: any) {
+        console.error("Error updating profile:", error);
+        throw error;
+    }
+};
 
 
 export const logout = async () => {
