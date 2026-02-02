@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@theme {
+    /*--color-primary: #197FE6;*/
+    /*--color-secondary: #0E141B;*/
+    /*--color-tertiary: #4E7397;*/
+
+    /*--font-jakarta-el: "Jakarta-ExtraLight"; !* 200 *!*/
+    /*--font-jakarta-light: "Jakarta-Light"; !* 300 *!*/
+    /*--font-jakarta: "Jakarta-Regular"; !* 400 *!*/
+    /*--font-jakarta-medium: "Jakarta-Medium"; !* 500 *!*/
+    /*--font-jakarta-semibold: "Jakarta-SemiBold"; !* 600 *!*/
+    /*--font-jakarta-bold: "Jakarta-Bold"; !* 700 *!*/
+    /*--font-jakarta-extrabold: "Jakarta-ExtraBold"; !* 800 *!*/
+
+}
