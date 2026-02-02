@@ -52,6 +52,12 @@
           "microphonePermission": "Allow Memoria to access your microphone",
           "recordAudioAndroid": true
         }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Memoria to access your microphone."
+        }
       ]
     ],
     "experiments": {

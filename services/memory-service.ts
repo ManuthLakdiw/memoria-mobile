@@ -1,7 +1,7 @@
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from "@/config/firebase";
 import { uploadImageToCloudinary } from "./image-service";
-
+import { uploadAudioToCloudinary } from "./audio-service";
 
 const MOOD_IMAGES: Record<string, string> = {
     'Joy': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop',
@@ -16,7 +16,6 @@ const getImageForMood = (mood: string) => {
     return MOOD_IMAGES[mood] || MOOD_IMAGES['Default'];
 };
 
-
 interface MemoryData {
     title: string;
     content: string;
@@ -25,18 +24,24 @@ interface MemoryData {
     entryType: 'text' | 'audio';
     entryDate: Date;
     imageUri: string | null;
+    audioUri?: string | null;
 }
 
 export const createMemory = async (userId: string, data: MemoryData) => {
     try {
         let downloadUrl = null;
+        let audioDownloadUrl = null;
 
+        // Image Upload Logic
         if (data.imageUri) {
             downloadUrl = await uploadImageToCloudinary(data.imageUri);
-
             if (!downloadUrl) {
                 console.warn("Image upload failed. Using mood image as fallback.");
             }
+        }
+
+        if (data.audioUri) {
+            audioDownloadUrl = await uploadAudioToCloudinary(data.audioUri);
         }
 
         const finalImageUrl = downloadUrl || getImageForMood(data.mood);
@@ -47,6 +52,7 @@ export const createMemory = async (userId: string, data: MemoryData) => {
             mood: data.mood,
             tags: data.tags,
             imageUrl: finalImageUrl,
+            audioUrl: audioDownloadUrl,
             type: data.entryType,
             createdAt: Timestamp.fromDate(data.entryDate),
             dateString: data.entryDate.toISOString().split('T')[0]
