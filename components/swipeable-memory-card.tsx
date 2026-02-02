@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from 'react'; // 1. useRef, useEffect ගන්න
+import React, { useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
-import { useIsFocused } from '@react-navigation/native'; // 2. useIsFocused ගන්න
+import { useIsFocused } from '@react-navigation/native';
 import { Edit2, Trash2 } from 'lucide-react-native';
 import MemoryCard from './memory-card';
 
@@ -42,7 +42,7 @@ const SwipeableMemoryCard = ({ item, index, onEdit, onDelete }: SwipeableMemoryC
                 <Animated.View style={{ transform: [{ scale }], opacity }}>
                     <TouchableOpacity
                         onPress={() => {
-                            swipeableRef.current?.close(); // Button එක Click කරාමත් වැහෙන්න හදන්න පුළුවන්
+                            swipeableRef.current?.close();
                             onEdit();
                         }}
                         className="w-16 h-full bg-[#E0E7FF] rounded-xl justify-center items-center mr-2 active:scale-95"
@@ -76,13 +76,15 @@ const SwipeableMemoryCard = ({ item, index, onEdit, onDelete }: SwipeableMemoryC
             rightThreshold={40}
         >
             <MemoryCard
+                key={item.id}
                 index={index}
-                type={item.type}
-                imageUri={item.imageUri}
-                emoji={item.emoji}
+                type={item.type as 'text' | 'audio'}
+                imageUrl={item.imageUrl}
+                mood={item.mood}
                 date={item.date}
                 title={item.title}
-                description={item.description}
+                content={item.content}
+                tags={item.tags}
             />
         </Swipeable>
     );
