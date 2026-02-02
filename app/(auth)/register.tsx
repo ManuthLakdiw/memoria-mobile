@@ -7,23 +7,20 @@ import {
     KeyboardAvoidingView,
     Platform,
     Image,
-    Alert
+    Alert,
+    ActivityIndicator
 } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
 import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
-import {useLoader} from "@/hooks/user-loader";
 import {logout, registerUser} from "@/services/auth-service";
-
-
-
 
 const Register = () => {
     const router = useRouter();
     const [isPasswordVisible, setPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-    const {showLoader, hideLoader, isLoading} = useLoader()
+    const [isLoading, setIsLoading] = useState(false); // Local loading state
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -31,7 +28,7 @@ const Register = () => {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
 
     const handleRegister = async () => {
-        if (isLoading) return
+        if (isLoading) return;
 
         if (!name || !email || !password || !confirmPassword) {
             Alert.alert("Error", "Please fill in all fields");
@@ -52,7 +49,7 @@ const Register = () => {
         }
 
         try {
-            showLoader()
+            setIsLoading(true);
             await registerUser(name, email, password);
             await logout();
             Alert.alert("Success", "Account created successfully!", [
@@ -64,8 +61,8 @@ const Register = () => {
                 errorMessage = "That email address is already in use!";
             }
             Alert.alert("Error", errorMessage);
-        }finally {
-            hideLoader()
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -176,9 +173,13 @@ const Register = () => {
                             onPress={handleRegister}
                             disabled={isLoading}
                             className="w-full bg-primary h-14 rounded-xl items-center justify-center shadow-sm shadow-primary/20 mt-4 active:opacity-90">
-                            <Text className="text-white font-jakarta-bold text-base tracking-wide">
-                                Register
-                            </Text>
+                            {isLoading ? (
+                                <ActivityIndicator size="small" color="white" />
+                            ) : (
+                                <Text className="text-white font-jakarta-bold text-base tracking-wide">
+                                    Register
+                                </Text>
+                            )}
                         </TouchableOpacity>
 
                     </View>
@@ -213,6 +214,7 @@ const Register = () => {
                         <Text className="text-tertiary text-sm font-jakarta">
                             Already have an account?
                             <Text
+                                onPress={() => router.push("/(auth)/login")}
                                 className="text-primary font-jakarta-bold ml-1"
                             > Log In</Text>
                         </Text>

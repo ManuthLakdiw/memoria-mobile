@@ -1,20 +1,17 @@
-import {View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator} from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {useNavigation, useRouter} from "expo-router";
 import { ChevronLeft, Eye, EyeOff, Sparkles, Fingerprint } from "lucide-react-native";
-import {CommonActions} from "@react-navigation/native";
 import {loginUser} from "@/services/auth-service";
-import {useLoader} from "@/hooks/user-loader";
 
 const Login = () => {
     const router = useRouter();
     const navigation = useNavigation();
     const [isPasswordVisible, setPasswordVisible] = useState(false);
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const { showLoader, hideLoader, isLoading } = useLoader();
-
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -23,7 +20,7 @@ const Login = () => {
         }
 
         try {
-            showLoader();
+            setIsLoading(true);
             await loginUser(email, password);
             router.replace("/(dashboard)/home");
 
@@ -37,7 +34,7 @@ const Login = () => {
 
             Alert.alert("Login Error", msg);
         } finally {
-            hideLoader();
+            setIsLoading(false);
         }
     };
 
@@ -126,9 +123,13 @@ const Login = () => {
                             onPress={handleLogin}
                             disabled={isLoading}
                             className="w-full bg-primary h-14 rounded-xl items-center justify-center shadow-lg shadow-primary/20 active:opacity-90">
-                            <Text className="text-white font-jakarta-bold text-base">
-                                Login
-                            </Text>
+                            {isLoading ? (
+                                <ActivityIndicator size="small" color="white" />
+                            ) : (
+                                <Text className="text-white font-jakarta-bold text-base">
+                                    Login
+                                </Text>
+                            )}
                         </TouchableOpacity>
 
                     </View>
