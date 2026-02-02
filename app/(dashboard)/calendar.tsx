@@ -16,7 +16,6 @@ const Calendar = () => {
     const isFocused = useIsFocused();
 
     const todayDate = new Date().toISOString().split('T')[0];
-    // Start with current month in YYYY-MM-DD format
     const [currentMonth, setCurrentMonth] = useState<string>(todayDate);
     const [selectedDate, setSelectedDate] = useState<string>(todayDate);
 
@@ -26,12 +25,11 @@ const Calendar = () => {
 
     const dateObject = new Date(currentMonth);
     const currentYear = dateObject.getFullYear();
-    const currentMonthNum = dateObject.getMonth(); // 0-11
+    const currentMonthNum = dateObject.getMonth();
 
     const [pickerYear, setPickerYear] = useState(currentYear);
     const [pickerMonth, setPickerMonth] = useState(currentMonthNum);
 
-    // Header Date එක කෙලින්ම currentMonth එකෙන් ගන්නවා
     const headerDate = new Date(currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
 
     useFocusEffect(
@@ -90,7 +88,6 @@ const Calendar = () => {
     };
 
     const handleApplyPicker = () => {
-        // Month is 0-indexed in JS Date, but we need 1-12 string for logic
         const month = String(pickerMonth + 1).padStart(2, '0');
         const newDateString = `${pickerYear}-${month}-01`;
         setCurrentMonth(newDateString);
@@ -186,14 +183,13 @@ const Calendar = () => {
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                     <View className="bg-white border-b border-gray-100 pb-2">
                         <RNCalendar
-                            key={currentMonth} // Force re-render if month changes externally
+                            key={currentMonth}
                             current={currentMonth}
                             onMonthChange={(month) => {
                                 setCurrentMonth(month.dateString);
                             }}
                             onDayPress={(day: any) => {
                                 setSelectedDate(day.dateString);
-                                // 👇 වැදගත්: දවසක් එබුවම ඒ මාසයට කැලැන්ඩරේ මාරු කරන්න (Header එක අප්ඩේට් වෙන්න)
                                 setCurrentMonth(day.dateString);
                             }}
                             enableSwipeMonths={true}
@@ -224,7 +220,7 @@ const Calendar = () => {
                                     <TouchableOpacity
                                         onPress={() => {
                                             setSelectedDate(date.dateString);
-                                            setCurrentMonth(date.dateString); // Update month on tap
+                                            setCurrentMonth(date.dateString);
                                         }}
                                         className={`w-[45px] h-10 items-center justify-center rounded-lg mb-1 ${isSelected ? 'bg-primary/10 border border-primary/20' : ''}`}
                                     >
@@ -276,7 +272,21 @@ const Calendar = () => {
                                     <SwipeableMemoryCard
                                         index={index}
                                         item={memory}
-                                        onEdit={() => console.log('Edit', memory.id)}
+                                        onEdit={() => {
+                                            router.push({
+                                                pathname: '/memory/update-entry',
+                                                params: {
+                                                    id: memory.id,
+                                                    title: memory.title,
+                                                    content: memory.content,
+                                                    imageUrl: memory.imageUrl,
+                                                    audioUrl: memory.audioUrl || '',
+                                                    mood: memory.mood,
+                                                    tags: Array.isArray(memory.tags) ? memory.tags.join(',') : memory.tags,
+                                                    type: memory.type
+                                                }
+                                            });
+                                        }}
                                         onDelete={() => handleDeleteMemory(memory.id)}
                                     />
                                 </TouchableOpacity>
@@ -294,13 +304,13 @@ const Calendar = () => {
                     {currentMemories.length > 0 && (
                         <View className="items-center py-6 opacity-50">
                             <CheckCircle2 color="#9CA3AF" size={24} />
-                            <Text className="text-gray-400 text-xs font-jakarta-medium mt-2">You're all caught up!</Text>
+                            <Text className="text-gray-400 text-xs font-jakarta-medium mt-2">You&#39;re all caught up!</Text>
                         </View>
                     )}
                 </ScrollView>
 
                 <TouchableOpacity
-                    onPress={() => router.push('/create-entry')}
+                    onPress={() => router.push('/memory/create-entry')}
                     className="absolute bottom-12 right-6 w-14 h-14 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/40 active:scale-95"
                 >
                     <Plus color="white" size={32} />

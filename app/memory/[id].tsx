@@ -99,9 +99,20 @@ export default function MemoryDetail() {
     };
 
     const handleEdit = () => {
-        Alert.alert("Coming Soon", "Edit functionality will be added next!");
+        router.push({
+            pathname: '/memory/update-entry',
+            params: {
+                id,
+                title,
+                content,
+                imageUrl,
+                audioUrl,
+                mood,
+                tags,
+                type
+            }
+        });
     };
-
     const getMoodColor = (moodName: string) => {
         switch(moodName) {
             case 'Joy': return { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: '😊' };

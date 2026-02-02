@@ -1,4 +1,4 @@
-import {collection, addDoc, Timestamp, orderBy, getDocs, query, deleteDoc} from 'firebase/firestore';
+import {collection, addDoc, Timestamp, orderBy, getDocs, query, deleteDoc, updateDoc} from 'firebase/firestore';
 import { db } from "@/config/firebase";
 import { uploadImageToCloudinary } from "./image-service";
 import { uploadAudioToCloudinary } from "./audio-service";
@@ -83,6 +83,43 @@ export const getMemories = async (userId: string) => {
         return memories;
     } catch (error) {
         console.error("Error fetching memories:", error);
+        throw error;
+    }
+};
+
+export const updateMemory = async (userId: string, memoryId: string, data: Partial<MemoryData>) => {
+    try {
+        const memoryRef = doc(db, "users", userId, "memories", memoryId);
+
+        let updateData: any = { ...data };
+
+        if (data.imageUri && !data.imageUri.startsWith('http')) {
+            const downloadUrl = await uploadImageToCloudinary(data.imageUri);
+            if (downloadUrl) {
+                updateData.imageUrl = downloadUrl;
+            }
+        }
+
+        if (data.audioUri && !data.audioUri.startsWith('http')) {
+            const audioDownloadUrl = await uploadAudioToCloudinary(data.audioUri);
+            if (audioDownloadUrl) {
+                updateData.audioUrl = audioDownloadUrl;
+            }
+        }
+
+        if (data.mood && !updateData.imageUrl && !data.imageUri) {
+            updateData.imageUrl = getImageForMood(data.mood);
+        }
+
+
+        updateData.updatedAt = Timestamp.now();
+
+        delete updateData.imageUri;
+        delete updateData.audioUri;
+
+        await updateDoc(memoryRef, updateData);
+
+    } catch (error) {
         throw error;
     }
 };
