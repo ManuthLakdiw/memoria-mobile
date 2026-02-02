@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Modal, ActivityIndicator, Alert} from 'react-native';
 import React, { useState, useMemo, useCallback } from 'react';
 import { MotiSafeAreaView } from 'moti';
 import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, CheckCircle2, X, Coffee } from 'lucide-react-native';
@@ -101,18 +101,36 @@ const Calendar = () => {
         setPickerYear(prev => prev + increment);
     };
 
-    const handleDeleteMemory = async (memoryId: string) => {
+    const handleDeleteMemory = (memoryId: string) => {
         if (!user) return;
-        try {
-            await deleteMemory(user.uid, memoryId);
-            const updatedMemories = { ...memoriesByDate };
-            if (updatedMemories[selectedDate]) {
-                updatedMemories[selectedDate] = updatedMemories[selectedDate].filter(m => m.id !== memoryId);
-                setMemoriesByDate(updatedMemories);
-            }
-        } catch (error) {
-            console.error("Failed to delete memory", error);
-        }
+
+        Alert.alert(
+            "Delete Memory",
+            "Are you sure you want to delete this memory? This cannot be undone.",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel"
+                },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await deleteMemory(user.uid, memoryId);
+                            const updatedMemories = { ...memoriesByDate };
+                            if (updatedMemories[selectedDate]) {
+                                updatedMemories[selectedDate] = updatedMemories[selectedDate].filter(m => m.id !== memoryId);
+                                setMemoriesByDate(updatedMemories);
+                            }
+                        } catch (error) {
+                            console.error("Failed to delete memory", error);
+                            Alert.alert("Error", "Could not delete memory.");
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const months = [
