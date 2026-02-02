@@ -96,7 +96,9 @@ const HelpCenter = () => {
 
                 <View className="mt-10 items-center mb-8">
                     <Text className="text-sm text-gray-500 font-jakarta">Still need help?</Text>
-                    <TouchableOpacity className="mt-2">
+                    <TouchableOpacity
+                        onPress={() => router.push('/help/contact')}
+                        className="mt-2">
                         <Text className="text-primary font-jakarta-bold text-base">Contact Support</Text>
                     </TouchableOpacity>
                 </View>
