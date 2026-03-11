@@ -33,7 +33,6 @@ export const createMemory = async (userId: string, data: MemoryData) => {
         let downloadUrl = null;
         let audioDownloadUrl = null;
 
-        // Image Upload Logic
         if (data.imageUri) {
             downloadUrl = await uploadImageToCloudinary(data.imageUri);
             if (!downloadUrl) {
