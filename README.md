@@ -45,6 +45,12 @@
 
 ---
 
+## 🎥 Demo Video
+
+[![Watch Demo](https://img.youtube.com/vi/QEeKqaQeDL8/0.jpg)](https://youtu.be/QEeKqaQeDL8?si=Avu-8oPHo0Bh5y7I)
+
+---
+
 ## ✨ Key Features
 
 - **🎙️ Audio Journaling**: Record and save voice notes along with your memories using a dedicated **Audio Service**.
